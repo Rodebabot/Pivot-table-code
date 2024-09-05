@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import time
 
 # Friends and their respective balance limits
@@ -42,18 +41,28 @@ def make_payment(payer, payee, amount):
 # Borrowing strategy when someone goes below their limit
 def borrow_from_others(payer, deficit):
     print(f"{payer} needs to borrow {deficit}")
-    lenders = sorted(friends.keys(), key=lambda x: friends[x]['balance'], reverse=True)
+    
+    # Sort friends by available balance (descending)
+    lenders = sorted(friends.keys(), key=lambda x: friends[x]['balance'] - friends[x]['limit'], reverse=True)
+    
     for lender in lenders:
         if lender != payer and friends[lender]['balance'] > friends[lender]['limit']:
             available_funds = friends[lender]['balance'] - friends[lender]['limit']
             borrow_amount = min(deficit, available_funds)
+            
             if borrow_amount > 0:
+                # Transfer the funds from lender to payer
                 friends[lender]['balance'] -= borrow_amount
                 friends[payer]['balance'] += borrow_amount
                 deficit -= borrow_amount
-                print(f"{payer} borrowed {borrow_amount} from {lender}, new balance of {payer}: {friends[payer]['balance']}, new balance of {lender}: {friends[lender]['balance']}")
+                print(f"{payer} borrowed {borrow_amount} from {lender}. New balance of {payer}: {friends[payer]['balance']}, New balance of {lender}: {friends[lender]['balance']}")
+            
             if deficit <= 0:
                 break
+
+    # If deficit remains, print a warning
+    if deficit > 0:
+        print(f"{payer} could not borrow enough and still has a deficit of {deficit}.")
 
 # Simulating transactions every second
 def simulate_transactions(seconds=10):
