@@ -21,17 +21,20 @@ def generate_transaction():
 # Function to simulate a payment and generate recommendation
 def make_payment(payer, payee, amount):
     if payer == 'external':
+        # External payments can only credit, no borrowing from external
         if friends[payee]['balance'] + amount > 100:  # Avoiding overflows
             amount = 100 - friends[payee]['balance']
         friends[payee]['balance'] += amount
         print(f"{payee} received {amount} from external, new balance: {friends[payee]['balance']}")
     else:
+        # Check if the payer needs to borrow to maintain limit
         if friends[payer]['balance'] - amount < friends[payer]['limit']:  # Borrow if below limit
             deficit = friends[payer]['limit'] - (friends[payer]['balance'] - amount)
             if deficit > 0:
                 borrow_from_others(payer, deficit)
             amount = min(amount, friends[payer]['balance'] - friends[payer]['limit'])
         
+        # Perform the transaction if the payer has sufficient balance
         friends[payer]['balance'] -= amount
         friends[payee]['balance'] += amount
         print(f"{payee} received {amount} from {payer}, new balance of {payee}: {friends[payee]['balance']}, new balance of {payer}: {friends[payer]['balance']}")
@@ -59,6 +62,10 @@ def simulate_transactions(seconds=10):
         make_payment(payer, payee, amount)
         time.sleep(1)
 
+    # Print final balances
+    print("\nFinal Balances:")
+    for friend, details in friends.items():
+        print(f"{friend}: {details['balance']}")
+
 # Start simulation for 10 seconds (you can increase the time)
 simulate_transactions(10)
-
