@@ -1,15 +1,1 @@
-import pandas as pd
-
-# Assuming df is the original dataframe
-
-# Step 1: Group by 'Product Representation' and 'Trade ID', then count unique 'Unique Eventid's
-eventid_per_tradeid = df.groupby(['Product Representation', 'Trade ID'])['Unique Eventid'].nunique().reset_index()
-eventid_per_tradeid.columns = ['Product Representation', 'Trade ID', 'Unique Eventid Count']
-
-# Step 2: Calculate the average number of unique event IDs per trade ID for each Product Representation
-average_eventid_per_trade = eventid_per_tradeid.groupby('Product Representation')['Unique Eventid Count'].mean().reset_index()
-average_eventid_per_trade.columns = ['Product Representation', 'Average Unique Eventids per Trade ID']
-
-# Step 3: Display the result
-print(average_eventid_per_trade)
 
