@@ -1,1 +1,24 @@
+import pandas as pd
+
+# Assuming df is the original dataset
+
+# Step 1: Group by Product Representation and count unique Unique Eventid's
+product_volume = df.groupby('Product Representation')['Unique Eventid'].nunique().reset_index()
+product_volume.columns = ['Product Representation', 'Unique Eventid Count']
+
+# Step 2: Sort the products by volume and select the top 10
+top_10_products = product_volume.sort_values(by='Unique Eventid Count', ascending=False).head(10)
+
+# Step 3: Filter the main dataframe to only include the top 10 products
+top_10_df = df[df['Product Representation'].isin(top_10_products['Product Representation'])]
+
+# Group by Product Representation, ROC, and Unique Eventid to count unique Unique Eventid's per ROC for each product
+roc_counts = top_10_df.groupby(['Product Representation', 'ROC'])['Unique Eventid'].nunique().reset_index()
+roc_counts.columns = ['Product Representation', 'ROC', 'Unique Eventid Count']
+
+# Step 4: Sort by Product Representation and Unique Eventid Count (largest to smallest for each product)
+sorted_roc_counts = roc_counts.sort_values(by=['Product Representation', 'Unique Eventid Count'], ascending=[True, False])
+
+# Display the sorted results for all ROCs within each product
+print(sorted_roc_counts)
 
