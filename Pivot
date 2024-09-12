@@ -1,7 +1,1 @@
-SignAmount = IF([Amount] >= 0, 1, -1)
 
-SameSign = IF(
-    CALCULATE(MIN([SignAmount]), ALLEXCEPT('YourTable', 'YourTable'[Name])) =
-    CALCULATE(MAX([SignAmount]), ALLEXCEPT('YourTable', 'YourTable'[Name])),
-    1, 0
-)
