@@ -1,1 +1,34 @@
+import pandas as pd
+
+# Load the dataset
+df = pd.read_csv('your_dataset.csv')  # Change to pd.read_excel('your_dataset.xlsx') if it's an Excel file
+
+# Filter the dataset for 'n' and 'nn' in the 'net' column
+df_n = df[df['net'] == 'n']
+df_nn = df[df['net'] == 'nn']
+
+# Function to find the maximum occurrence in specified columns
+def find_max_occurrence(group, columns):
+    return group[columns].apply(lambda x: x.value_counts().idxmax())
+
+# Columns from F to J (adjust the actual column names as per your dataset)
+columns_to_check = ['F', 'G', 'H', 'I', 'J']
+
+# Group by counterparty and find the maximum occurring entity for each group (for both 'n' and 'nn')
+max_n = df_n.groupby('Cpty').apply(find_max_occurrence, columns=columns_to_check)
+max_nn = df_nn.groupby('Cpty').apply(find_max_occurrence, columns=columns_to_check)
+
+# Merge both 'n' and 'nn' results into a single dataframe
+result = pd.merge(max_n, max_nn, on='Cpty', suffixes=('_n', '_nn'))
+
+# Add a column to check if the maximum entity matches for 'n' and 'nn'
+for column in columns_to_check:
+    result[f'{column}_match'] = result[f'{column}_n'] == result[f'{column}_nn']
+
+# Save the result as a new CSV or Excel file
+result.to_csv('comparison_table.csv', index=False)
+# Or use Excel output
+# result.to_excel('comparison_table.xlsx', index=False)
+
+print("Comparison table created successfully!")
 
