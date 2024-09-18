@@ -1,34 +1,37 @@
 import pandas as pd
 
-# Load the dataset
-df = pd.read_csv('your_dataset.csv')  # Change to pd.read_excel('your_dataset.xlsx') if it's an Excel file
+# Load your data (replace with your actual file path)
+file_path = "your_file.csv"
+df = pd.read_csv(file_path)
 
-# Filter the dataset for 'n' and 'nn' in the 'net' column
-df_n = df[df['net'] == 'n']
-df_nn = df[df['net'] == 'nn']
+# Step 1: Define a function to assign positive or negative sign based on the 'Direction' column
+def apply_sign(row):
+    if row['Direction'] == 'DEL':
+        return row['Amount USD']
+    elif row['Direction'] == 'REC':
+        return -row['Amount USD']
+    else:
+        return 0
 
-# Function to find the maximum occurrence in specified columns
-def find_max_occurrence(group, columns):
-    return group[columns].apply(lambda x: x.value_counts().idxmax())
+# Step 2: Apply the function to create a new column 'Signed Amount USD'
+df['Signed Amount USD'] = df.apply(apply_sign, axis=1)
 
-# Columns from F to J (adjust the actual column names as per your dataset)
-columns_to_check = ['F', 'G', 'H', 'I', 'J']
+# Step 3: Calculate netting opportunities based on the 'net' column
 
-# Group by counterparty and find the maximum occurring entity for each group (for both 'n' and 'nn')
-max_n = df_n.groupby('Cpty').apply(find_max_occurrence, columns=columns_to_check)
-max_nn = df_nn.groupby('Cpty').apply(find_max_occurrence, columns=columns_to_check)
+# For 'net' = 'n'
+net_n_opportunities = df[df['net'] == 'n'].groupby('Unique')['Signed Amount USD'].sum().reset_index()
+net_n_opportunities.columns = ['Unique', 'Netting Opportunity USD (n)']
 
-# Merge both 'n' and 'nn' results into a single dataframe
-result = pd.merge(max_n, max_nn, on='Cpty', suffixes=('_n', '_nn'))
+# For 'net' = 'nn'
+net_nn_opportunities = df[df['net'] == 'nn'].groupby('Unique')['Signed Amount USD'].sum().reset_index()
+net_nn_opportunities.columns = ['Unique', 'Netting Opportunity USD (nn)']
 
-# Add a column to check if the maximum entity matches for 'n' and 'nn'
-for column in columns_to_check:
-    result[f'{column}_match'] = result[f'{column}_n'] == result[f'{column}_nn']
+# Step 4: Merge the results for comparison
+comparison_netting_opportunities = pd.merge(net_n_opportunities, net_nn_opportunities, on='Unique', how='outer')
 
-# Save the result as a new CSV or Excel file
-result.to_csv('comparison_table.csv', index=False)
-# Or use Excel output
-# result.to_excel('comparison_table.xlsx', index=False)
+# Step 5: Display the results
+print("Comparison of Netting Opportunities (n and nn):")
+print(comparison_netting_opportunities)
 
-print("Comparison table created successfully!")
-
+# Optionally, save the results to a CSV file for further analysis
+comparison_netting_opportunities.to_csv('netting_opportunities_comparison_n_nn.csv', index=False)
