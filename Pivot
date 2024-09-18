@@ -1,1 +1,51 @@
+import os
+import pandas as pd
+
+# Parent directory containing the month folders
+parent_directory = "/path/to/parent/directory"
+
+# Initialize an empty list to store results
+results = []
+
+# Loop through each month directory (Jan, Feb, Mar, etc.)
+for month in os.listdir(parent_directory):
+    month_path = os.path.join(parent_directory, month)
+    
+    # Check if it's a directory and contains the 'propx.xlsx' file
+    if os.path.isdir(month_path):
+        file_path = os.path.join(month_path, 'propx.xlsx')
+        
+        # Check if the 'propx.xlsx' file exists
+        if os.path.exists(file_path):
+            # Step 1: Load the Excel file
+            df = pd.read_excel(file_path)
+
+            # Step 2: Group by 'Unique' to calculate the count of repeats
+            grouped_df = df.groupby('Unique').agg(
+                Netting_Opportunity_USD=('Netting Opportunity USD', 'first'),  # Taking the first occurrence
+                Count=('Unique', 'size')  # Counting the number of times 'Unique' repeats
+            ).reset_index()
+
+            # Step 3: Create a new column by dividing 'Netting Opportunity USD' by 'Count'
+            grouped_df['Adjusted Netting Opportunity USD'] = grouped_df['Netting_Opportunity_USD'] / grouped_df['Count']
+
+            # Step 4: Calculate SUMM (sum of absolute values of Adjusted Netting Opportunity USD) and LEGS (sum of counts)
+            summ = grouped_df['Adjusted Netting Opportunity USD'].abs().sum()
+            legs = grouped_df['Count'].sum()
+
+            # Step 5: Calculate the number of unique Uniques
+            unique_count = grouped_df['Unique'].nunique()
+
+            # Step 6: Store the results (month name, SUMM, LEGS, unique_count) in the results list
+            results.append({'Month': month, 'SUMM': summ, 'LEGS': legs, 'Unique Uniques': unique_count})
+
+            # Step 7: Save the processed grouped_df to an individual Excel file in the respective month folder
+            output_file_path = os.path.join(month_path, f'processed_propx_{month}.xlsx')
+            grouped_df.to_excel(output_file_path, index=False)
+
+# Step 8: Create a DataFrame from the results and save it to an Excel file (summary)
+results_df = pd.DataFrame(results)
+results_df.to_excel('Netting_Summary_by_Month.xlsx', index=False)
+
+print("Summary saved to 'Netting_Summary_by_Month.xlsx' and individual processed files saved in respective month folders.")
 
