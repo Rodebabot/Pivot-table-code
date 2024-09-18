@@ -1,1 +1,19 @@
+import pandas as pd
+
+# Assuming df is the DataFrame loaded from a single Excel file
+df = pd.read_excel('propx.xlsx')
+
+# Step 1: Group by 'Unique' to calculate the count of repeats
+grouped_df = df.groupby('Unique').agg(
+    Netting_Opportunity_USD=('Netting Opportunity USD', 'first'),  # Taking the first occurrence of 'Netting Opportunity USD'
+    Count=('Unique', 'size')  # Counting the number of times 'Unique' repeats
+).reset_index()
+
+# Step 2: Create a new column by dividing 'Netting Opportunity USD' by 'Count'
+grouped_df['Adjusted Netting Opportunity USD'] = grouped_df['Netting_Opportunity_USD'] / grouped_df['Count']
+
+# Step 3: Save the processed DataFrame to an Excel file
+grouped_df.to_excel('processed_propx.xlsx', index=False)
+
+print("Processed data saved to 'processed_propx.xlsx'.")
 
