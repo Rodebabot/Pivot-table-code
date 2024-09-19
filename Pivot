@@ -1,1 +1,44 @@
+import pandas as pd
+
+# Load the dataset
+df = pd.read_excel('path_to_your_first_dataset.xlsx')  # Replace with your actual file path
+
+# Step 1: Group by 'Counterparty' and calculate the percentage of 'n' and 'nn' based on 'Amount USD'
+# Calculate absolute values of 'Amount USD' for accurate percentage calculations
+df['Abs_Amount_USD'] = df['Amount USD'].abs()
+
+# Group by 'Counterparty' and 'net' and calculate sum of 'Abs_Amount_USD'
+grouped_df = df.groupby(['Counterparty', 'net']).agg(
+    Total_Amount_USD=('Abs_Amount_USD', 'sum')
+).reset_index()
+
+# Calculate the total Amount USD for each Counterparty
+counterparty_totals = grouped_df.groupby('Counterparty')['Total_Amount_USD'].sum().reset_index()
+counterparty_totals = counterparty_totals.rename(columns={'Total_Amount_USD': 'Total_Counterparty_Amount_USD'})
+
+# Merge the totals back to the grouped DataFrame
+grouped_df = pd.merge(grouped_df, counterparty_totals, on='Counterparty')
+
+# Calculate percentage for 'n' and 'nn'
+grouped_df['Percentage'] = (grouped_df['Total_Amount_USD'] / grouped_df['Total_Counterparty_Amount_USD']) * 100
+
+# Pivot to have 'n' and 'nn' percentages as separate columns
+pivot_df = grouped_df.pivot(index='Counterparty', columns='net', values='Percentage').reset_index()
+
+# Rename columns for easier reference
+pivot_df.columns = ['Counterparty', 'Percentage_n', 'Percentage_nn']
+
+# Step 2: Filter based on the criteria
+filtered_df = pivot_df[(pivot_df['Percentage_n'] > 80) & (pivot_df['Percentage_n'] < 100) & (pivot_df['Percentage_nn'] <= 20)]
+
+# Step 3: Merge back to the original dataset to keep additional columns like 'Currency' and 'Our SSI'
+final_filtered_df = pd.merge(df, filtered_df[['Counterparty']], on='Counterparty')
+
+# Keeping only the necessary columns
+final_filtered_df = final_filtered_df[['Counterparty', 'Currency', 'Our SSI', 'Amount USD', 'Netting Opportunity USD', 'net']]
+
+# Save the final filtered DataFrame to an Excel file
+final_filtered_df.to_excel('Filtered_Counterparties_80n_20nn.xlsx', index=False)
+
+print("Filtered counterparties with n > 80% and nn <= 20% saved to 'Filtered_Counterparties_80n_20nn.xlsx'.")
 
