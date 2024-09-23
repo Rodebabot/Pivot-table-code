@@ -1,1 +1,71 @@
 
+import pandas as pd
+
+# Load the dataset
+df = pd.read_csv('your_file.csv')  # Replace with your actual file path
+
+# Group by LP Grp 1 (Yes = Before lunch, No = After lunch) and calculate the average Grp 1 Amount
+avg_amount_by_lunch = df.groupby('LP Grp 1')['Grp 1 Amount'].mean()
+
+print("Average negative amount before and after lunch:")
+print(avg_amount_by_lunch)
+
+# Plotting
+import matplotlib.pyplot as plt
+
+avg_amount_by_lunch.plot(kind='bar', color=['skyblue', 'orange'], title='Average Negative Amount by Lunch Timing')
+plt.ylabel('Average Grp 1 Amount')
+plt.xlabel('Before Lunch (Yes) or After Lunch (No)')
+plt.show()
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the dataset
+df = pd.read_csv('your_file.csv')  # Replace with your actual file path
+
+# Convert timestamp Grp 1 to a numeric format (seconds since start of day)
+df['timestamp_seconds'] = pd.to_timedelta(df['timestamp Grp 1']).dt.total_seconds()
+
+# Calculate the correlation between timestamp and Grp 1 Amount
+correlation = df['timestamp_seconds'].corr(df['Grp 1 Amount'])
+print(f"Correlation between time of day and Grp 1 Amount: {correlation}")
+
+# Scatter plot
+plt.scatter(df['timestamp_seconds'], df['Grp 1 Amount'], alpha=0.5)
+plt.title('Correlation between Time of Day and Grp 1 Amount')
+plt.xlabel('Time of Day (seconds)')
+plt.ylabel('Grp 1 Amount')
+plt.show()
+
+
+
+
+from sklearn.cluster import KMeans
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+
+# Load the dataset
+df = pd.read_csv('your_file.csv')  # Replace with your actual file path
+
+# Convert timestamp to total seconds and scale the data
+df['timestamp_seconds'] = pd.to_timedelta(df['timestamp Grp 1']).dt.total_seconds()
+X = df[['timestamp_seconds', 'Grp 1 Amount']]
+
+# Standardize the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Apply KMeans clustering
+kmeans = KMeans(n_clusters=3, random_state=0)  # You can adjust the number of clusters
+df['cluster'] = kmeans.fit_predict(X_scaled)
+
+# Visualize the clusters
+plt.scatter(df['timestamp_seconds'], df['Grp 1 Amount'], c=df['cluster'], cmap='viridis')
+plt.title('K-Means Clustering of Events by Time and Negative Amount')
+plt.xlabel('Time of Day (seconds)')
+plt.ylabel('Grp 1 Amount')
+plt.show()
