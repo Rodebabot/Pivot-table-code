@@ -1,1 +1,2 @@
+df.replace('nan', np.nan, inplace=True)
 
