@@ -1,2 +1,41 @@
-df.replace('nan', np.nan, inplace=True)
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+# Load your dataset
+# df = pd.read_csv('your_dataset.csv')
+
+# Example dataframe for illustration purposes
+np.random.seed(42)
+df = pd.DataFrame({
+    'Counterparty': [f'CP{i}' for i in range(1, 11)],
+    'Variable_A': np.random.randint(1, 100, 10),
+    'Variable_B': np.random.randint(1, 100, 10),
+    'Variable_C': np.random.randint(1, 100, 10),
+    'Variable_D': np.random.randint(1, 100, 10)
+})
+
+# Function to categorize values into 'low', 'medium', 'high'
+def categorize_column(col):
+    return pd.qcut(col, q=3, labels=['red', 'yellow', 'green'])
+
+# Categorize each numerical column into 3 categories
+for col in df.select_dtypes(include=['float', 'int']).columns:
+    df[f'{col}_category'] = categorize_column(df[col])
+
+# Create a pivot table or cross-tab for heatmap generation
+# For example, let's create a heatmap for Variable_A and Variable_B
+
+heatmap_data = pd.crosstab(df['Variable_A_category'], df['Variable_B_category'])
+
+# Plot the heatmap using seaborn
+plt.figure(figsize=(8, 6))
+sns.heatmap(heatmap_data, annot=True, cmap="coolwarm", cbar=True)
+
+# Add title and labels
+plt.title('Heatmap between Variable A and Variable B categories')
+plt.xlabel('Variable_B Category')
+plt.ylabel('Variable_A Category')
+
+plt.show()
