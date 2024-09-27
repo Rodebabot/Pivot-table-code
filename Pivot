@@ -1,1 +1,89 @@
 
+import pandas as pd
+import plotly.graph_objects as go
+
+# Function to map status to grid coordinates
+def get_coordinates(status):
+    status_map = {
+        'Good-Good': (2, 0), 'Good-Mid': (2, 1), 'Good-Bad': (2, 2),
+        'Mid-Good': (1, 0), 'Mid-Mid': (1, 1), 'Mid-Bad': (1, 2),
+        'Bad-Good': (0, 0), 'Bad-Mid': (0, 1), 'Bad-Bad': (0, 2)
+    }
+    return status_map.get(status, None)
+
+# Load Excel data
+# Replace 'path_to_excel_file.xlsx' with the actual file path
+df = pd.read_excel('path_to_excel_file.xlsx')
+
+# Input from user (select or input counterparty name)
+input_counterparty = input("Enter the counterparty name: ")
+
+# Find the status of the input counterparty
+cpty_data = df[df['cpty'] == input_counterparty]
+
+if not cpty_data.empty:
+    status = cpty_data.iloc[0, 1]  # Assuming 2nd column contains the status like 'Good-Good'
+    coordinates = get_coordinates(status)
+    
+    if coordinates:
+        # Color mapping for grid cells
+        grid_color_mapping = {
+            'Good-Good': 'green',
+            'Good-Mid': 'yellowgreen',
+            'Good-Bad': 'yellow',
+            'Mid-Good': 'yellowgreen',
+            'Mid-Mid': 'yellow',
+            'Mid-Bad': 'orange',
+            'Bad-Good': 'yellow',
+            'Bad-Mid': 'orange',
+            'Bad-Bad': 'red'
+        }
+
+        # Create an interactive heatmap for the grid
+        fig = go.Figure()
+
+        # Plot the base grid
+        for status, coord in get_coordinates.items():
+            fig.add_trace(go.Scatter(
+                x=[coord[1]], y=[coord[0]],
+                mode='markers+text',
+                marker=dict(color=grid_color_mapping[status], size=100),
+                text=status,
+                textposition='center'
+            ))
+        
+        # Highlight the selected counterparty in the respective square
+        fig.add_trace(go.Scatter(
+            x=[coordinates[1]], y=[coordinates[0]],
+            mode='markers+text',
+            marker=dict(color='black', size=120),
+            text=f'{input_counterparty} ({status})',
+            textposition='center',
+            textfont=dict(color='white', size=15)
+        ))
+
+        # Update layout to make it visually clear
+        fig.update_layout(
+            title=f"Counterparty: {input_counterparty} in Grid",
+            xaxis=dict(
+                tickvals=[0, 1, 2],
+                ticktext=['Good', 'Mid', 'Bad'],
+                title='Volume'
+            ),
+            yaxis=dict(
+                tickvals=[0, 1, 2],
+                ticktext=['Bad', 'Mid', 'Good'],
+                title='Impact'
+            ),
+            yaxis_autorange='reversed',
+            showlegend=False,
+            height=500,
+            width=500
+        )
+
+        # Show interactive grid
+        fig.show()
+    else:
+        print(f"Status '{status}' not found in the grid.")
+else:
+    print(f"Counterparty '{input_counterparty}' not found in the data.")
