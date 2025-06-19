@@ -1,1 +1,26 @@
-..
+import pandas as pd
+
+# Sample dataframe
+df = pd.DataFrame({
+    'Col1': ['abc', 'kp', 'xyz', 'hello'],
+    'Col2': ['RS', 'def', 'ghiJ', 'world'],
+    'Col3': ['uvw', 'lmn', 'opq', 'KP']
+})
+
+# Function to determine value for 4th column
+def assign_label(row):
+    combined = f"{row['Col1']} {row['Col2']} {row['Col3']}".lower()
+    if 'kp' in combined:
+        return 'KP'
+    elif 'rs' in combined:
+        return 'RS'
+    elif 'ghij' in combined:
+        return 'GHIJ'
+    else:
+        return ''
+
+# Apply the function
+df['Col4'] = df.apply(assign_label, axis=1)
+
+print(df)
+
